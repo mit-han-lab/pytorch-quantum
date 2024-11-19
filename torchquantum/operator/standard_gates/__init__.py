@@ -54,7 +54,7 @@ from .u3 import U3, CU3, CU, U
 from .xx_min_yy import XXMINYY
 from .xx_plus_yy import XXPLUSYY
 
-all_variables = [
+_all_variables = [
     EchoedCrossResonance,
     ECR,
     GlobalPhase,
@@ -127,16 +127,8 @@ all_variables = [
     XXPLUSYY,
 ]
 
-__all__ = [a().__class__.__name__ for a in all_variables]
-
-# add the aliased and incomptaible classes
-__all__.extend(["U", "CH", "QubitUnitary", "QubitUnitaryFast"])
-
-# add the dictionary
-__all__.extend(["op_name_dict", "fixed_ops", "parameterized_ops"])
-
 # create the operations dictionary
-op_name_dict = {x.op_name: x for x in all_variables}
+op_name_dict = {_x.op_name: _x for _x in _all_variables}
 
 # add aliases as well
 op_name_dict.update(
@@ -161,5 +153,6 @@ op_name_dict.update(
     }
 )
 
-fixed_ops = [a().__class__.__name__ for a in all_variables if a.num_params == 0]
-parameterized_ops = [a().__class__.__name__ for a in all_variables if a.num_params > 0]
+# TODO: make this compatible with aliases
+fixed_ops = [_a().__class__.__name__ for _a in _all_variables if _a.num_params == 0]
+parameterized_ops = [_a().__class__.__name__ for _a in _all_variables if _a.num_params > 0]

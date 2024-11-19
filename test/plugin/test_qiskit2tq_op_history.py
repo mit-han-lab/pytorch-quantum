@@ -22,10 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from torchquantum.plugin import qiskit2tq_op_history
-import torchquantum as tq
-from qiskit.circuit.random import random_circuit
 from qiskit import QuantumCircuit
+
+import torchquantum as tq
+from torchquantum.plugin import qiskit2tq_op_history
 
 
 def test_qiskit2tp_op_history():

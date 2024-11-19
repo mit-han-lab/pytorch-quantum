@@ -24,12 +24,11 @@ SOFTWARE.
 
 import numpy as np
 import torch
-import torchquantum as tq
-
+from qiskit_aer.noise import NoiseModel
 from torchpack.utils.logging import logger
-from qiskit.providers.aer.noise import NoiseModel
-from torchquantum.util import get_provider
 
+import torchquantum as tq
+from torchquantum.util import get_provider
 
 __all__ = [
     "NoiseModelTQ",
@@ -50,31 +49,31 @@ def cos_adjust_noise(
     orig_noise_total_prob,
 ):
     """
-        Adjust the noise probability based on the current epoch and a cosine schedule.
+    Adjust the noise probability based on the current epoch and a cosine schedule.
 
-        Args:
-            current_epoch (int): The current epoch.
-            n_epochs (int): The total number of epochs.
-            prob_schedule (str): The probability schedule type. Possible values are:
-                - None: No schedule, use the original noise probability.
-                - "increase": Increase the noise probability using a cosine schedule.
-                - "decrease": Decrease the noise probability using a cosine schedule.
-                - "increase_decrease": Increase the noise probability until a separator epoch,
-                  then decrease it using cosine schedules.
-            prob_schedule_separator (int): The epoch at which the schedule changes for
-                "increase_decrease" mode.
-            orig_noise_total_prob (float): The original noise probability.
+    Args:
+        current_epoch (int): The current epoch.
+        n_epochs (int): The total number of epochs.
+        prob_schedule (str): The probability schedule type. Possible values are:
+            - None: No schedule, use the original noise probability.
+            - "increase": Increase the noise probability using a cosine schedule.
+            - "decrease": Decrease the noise probability using a cosine schedule.
+            - "increase_decrease": Increase the noise probability until a separator epoch,
+              then decrease it using cosine schedules.
+        prob_schedule_separator (int): The epoch at which the schedule changes for
+            "increase_decrease" mode.
+        orig_noise_total_prob (float): The original noise probability.
 
-        Returns:
-            float: The adjusted noise probability based on the schedule.
+    Returns:
+        float: The adjusted noise probability based on the schedule.
 
-        Note:
-            The adjusted noise probability is returned as a float between 0 and 1.
+    Note:
+        The adjusted noise probability is returned as a float between 0 and 1.
 
-        Raises:
-            None.
+    Raises:
+        None.
 
-        """
+    """
 
     if prob_schedule is None:
         noise_total_prob = orig_noise_total_prob
@@ -134,31 +133,31 @@ def cos_adjust_noise(
 
 def apply_readout_error_func(x, c2p_mapping, measure_info):
     """
-        Apply readout error to the measurement outcomes.
+    Apply readout error to the measurement outcomes.
 
-        Args:
-            x (torch.Tensor): The measurement outcomes, represented as a tensor of shape (batch_size, num_qubits).
-            c2p_mapping (dict): Mapping from qubit indices to physical wire indices.
-            measure_info (dict): Measurement information dictionary containing the probabilities for different outcomes.
+    Args:
+        x (torch.Tensor): The measurement outcomes, represented as a tensor of shape (batch_size, num_qubits).
+        c2p_mapping (dict): Mapping from qubit indices to physical wire indices.
+        measure_info (dict): Measurement information dictionary containing the probabilities for different outcomes.
 
-        Returns:
-            torch.Tensor: The measurement outcomes after applying the readout error, represented as a tensor of the same shape as x.
+    Returns:
+        torch.Tensor: The measurement outcomes after applying the readout error, represented as a tensor of the same shape as x.
 
-        Note:
-            The readout error is applied based on the given mapping and measurement information.
-            The measurement information dictionary should have the following structure:
-            {
-                (wire_1,): {"probabilities": [[p_0, p_1], [p_0, p_1]]},
-                (wire_2,): {"probabilities": [[p_0, p_1], [p_0, p_1]]},
-                ...
-            }
-            where wire_1, wire_2, ... are the physical wire indices, and p_0 and p_1 are the probabilities of measuring 0 and 1, respectively,
-            for each wire.
+    Note:
+        The readout error is applied based on the given mapping and measurement information.
+        The measurement information dictionary should have the following structure:
+        {
+            (wire_1,): {"probabilities": [[p_0, p_1], [p_0, p_1]]},
+            (wire_2,): {"probabilities": [[p_0, p_1], [p_0, p_1]]},
+            ...
+        }
+        where wire_1, wire_2, ... are the physical wire indices, and p_0 and p_1 are the probabilities of measuring 0 and 1, respectively,
+        for each wire.
 
-        Raises:
-            None.
+    Raises:
+        None.
 
-        """
+    """
     # add readout error
     noise_free_0_probs = (x + 1) / 2
     noise_free_1_probs = 1 - (x + 1) / 2
@@ -196,21 +195,22 @@ def apply_readout_error_func(x, c2p_mapping, measure_info):
 
 class NoiseCounter:
     """
-        A class for counting the occurrences of Pauli error gates.
+    A class for counting the occurrences of Pauli error gates.
 
-        Attributes:
-            counter_x (int): Counter for Pauli X errors.
-            counter_y (int): Counter for Pauli Y errors.
-            counter_z (int): Counter for Pauli Z errors.
-            counter_X (int): Counter for Pauli X errors (for two-qubit gates).
-            counter_Y (int): Counter for Pauli Y errors (for two-qubit gates).
-            counter_Z (int): Counter for Pauli Z errors (for two-qubit gates).
+    Attributes:
+        counter_x (int): Counter for Pauli X errors.
+        counter_y (int): Counter for Pauli Y errors.
+        counter_z (int): Counter for Pauli Z errors.
+        counter_X (int): Counter for Pauli X errors (for two-qubit gates).
+        counter_Y (int): Counter for Pauli Y errors (for two-qubit gates).
+        counter_Z (int): Counter for Pauli Z errors (for two-qubit gates).
 
-        Methods:
-            add(error): Adds a Pauli error to the counters based on the error type.
-            __str__(): Returns a string representation of the counters.
+    Methods:
+        add(error): Adds a Pauli error to the counters based on the error type.
+        __str__(): Returns a string representation of the counters.
 
-        """
+    """
+
     def __init__(self):
         self.counter_x = 0
         self.counter_y = 0
@@ -220,51 +220,51 @@ class NoiseCounter:
         self.counter_Z = 0
 
     def add(self, error):
-        if error == 'x':
+        if error == "x":
             self.counter_x += 1
-        elif error == 'y':
+        elif error == "y":
             self.counter_y += 1
-        elif error == 'z':
+        elif error == "z":
             self.counter_z += 1
-        if error == 'X':
+        if error == "X":
             self.counter_X += 1
-        elif error == 'Y':
+        elif error == "Y":
             self.counter_Y += 1
-        elif error == 'Z':
+        elif error == "Z":
             self.counter_Z += 1
         else:
             pass
-        
-    def __str__(self) -> str:
-        return f'single qubit error: pauli x = {self.counter_x}, pauli y = {self.counter_y}, pauli z = {self.counter_z}\n' + \
-               f'double qubit error: pauli x = {self.counter_X}, pauli y = {self.counter_Y}, pauli z = {self.counter_Z}'
 
+    def __str__(self) -> str:
+        return (
+            f"single qubit error: pauli x = {self.counter_x}, pauli y = {self.counter_y}, pauli z = {self.counter_z}\n"
+            + f"double qubit error: pauli x = {self.counter_X}, pauli y = {self.counter_Y}, pauli z = {self.counter_Z}"
+        )
 
 
 class NoiseModelTQ(object):
     """
-        A class for applying gate insertion and readout errors.
+    A class for applying gate insertion and readout errors.
 
-        Attributes:
-            noise_model_name (str): Name of the noise model.
-            n_epochs (int): Number of epochs.
-            noise_total_prob (float): Total probability of noise.
-            ignored_ops (tuple): Operations to be ignored.
-            prob_schedule (list): Probability schedule.
-            prob_schedule_separator (str): Separator for probability schedule.
-            factor (float): Factor for adjusting probabilities.
-            add_thermal (bool): Flag indicating whether to add thermal relaxation.
+    Attributes:
+        noise_model_name (str): Name of the noise model.
+        n_epochs (int): Number of epochs.
+        noise_total_prob (float): Total probability of noise.
+        ignored_ops (tuple): Operations to be ignored.
+        prob_schedule (list): Probability schedule.
+        prob_schedule_separator (str): Separator for probability schedule.
+        factor (float): Factor for adjusting probabilities.
+        add_thermal (bool): Flag indicating whether to add thermal relaxation.
 
-        Methods:
-            adjust_noise(current_epoch): Adjusts the noise based on the current epoch.
-            clean_parsed_noise_model_dict(nm_dict, ignored_ops): Cleans the parsed noise model dictionary.
-            parse_noise_model_dict(nm_dict): Parses the noise model dictionary.
-            magnify_probs(probs): Magnifies the probabilities based on a factor.
-            sample_noise_op(op_in): Samples a noise operation based on the given operation.
-            apply_readout_error(x): Applies readout error to the input.
+    Methods:
+        adjust_noise(current_epoch): Adjusts the noise based on the current epoch.
+        clean_parsed_noise_model_dict(nm_dict, ignored_ops): Cleans the parsed noise model dictionary.
+        parse_noise_model_dict(nm_dict): Parses the noise model dictionary.
+        magnify_probs(probs): Magnifies the probabilities based on a factor.
+        sample_noise_op(op_in): Samples a noise operation based on the given operation.
+        apply_readout_error(x): Applies readout error to the input.
 
-        """
-
+    """
 
     def __init__(
         self,
@@ -295,7 +295,9 @@ class NoiseModelTQ(object):
         self.ignored_ops = ignored_ops
 
         self.parsed_dict = self.parse_noise_model_dict(self.noise_model_dict)
-        self.parsed_dict = self.clean_parsed_noise_model_dict(self.parsed_dict, ignored_ops)
+        self.parsed_dict = self.clean_parsed_noise_model_dict(
+            self.parsed_dict, ignored_ops
+        )
         self.n_epochs = n_epochs
         self.prob_schedule = prob_schedule
         self.prob_schedule_separator = prob_schedule_separator
@@ -313,39 +315,66 @@ class NoiseModelTQ(object):
 
     @staticmethod
     def clean_parsed_noise_model_dict(nm_dict, ignored_ops):
-        # remove the ignored operation in the instructions and probs  
+        # remove the ignored operation in the instructions and probs
         # --> only get the pauli-x,y,z errors. ignore the thermal relaxation errors (kraus operator)
 
         def filter_inst(inst_list: list) -> list:
             new_inst_list = []
             for inst in inst_list:
-                if inst['name'] in ignored_ops:
+                if inst["name"] in ignored_ops:
                     continue
                 new_inst_list.append(inst)
             return new_inst_list
 
-        ignored_ops           = set(ignored_ops)
-        single_depolarization = set(['x', 'y', 'z'])
-        double_depolarization = set(['IX', 'IY', 'IZ', 'XI', 'XX', 'XY', 'XZ', 'YI', 'YX', 'YY', 'YZ', 'ZI', 'ZX', 'ZY', 'ZZ']) # 16 - 1 = 15 combinations
+        ignored_ops = set(ignored_ops)
+        single_depolarization = set(["x", "y", "z"])
+        double_depolarization = set(
+            [
+                "IX",
+                "IY",
+                "IZ",
+                "XI",
+                "XX",
+                "XY",
+                "XZ",
+                "YI",
+                "YX",
+                "YY",
+                "YZ",
+                "ZI",
+                "ZX",
+                "ZY",
+                "ZZ",
+            ]
+        )  # 16 - 1 = 15 combinations
         for operation, operation_info in nm_dict.items():
             for qubit, qubit_info in operation_info.items():
                 inst_all = []
                 prob_all = []
                 if qubit_info["type"] == "qerror":
-                    for inst, prob in zip(qubit_info["instructions"], qubit_info["probabilities"]):
-                        if operation in ['x', 'sx', 'id', 'reset']:              # single qubit gate
-                            if any([inst_one["name"] in single_depolarization for inst_one in inst]):
+                    for inst, prob in zip(
+                        qubit_info["instructions"], qubit_info["probabilities"]
+                    ):
+                        if operation in ["x", "sx", "id", "reset"]:  # single qubit gate
+                            if any(
+                                [
+                                    inst_one["name"] in single_depolarization
+                                    for inst_one in inst
+                                ]
+                            ):
                                 inst_all.append(filter_inst(inst))
                                 prob_all.append(prob)
-                        elif operation in ['cx']:                                # double qubit gate
+                        elif operation in ["cx"]:  # double qubit gate
                             try:
-                                if inst[0]['params'][0] in double_depolarization and (inst[1]['name'] == 'id' or inst[2]['name'] == 'id'):
+                                if inst[0]["params"][0] in double_depolarization and (
+                                    inst[1]["name"] == "id" or inst[2]["name"] == "id"
+                                ):
                                     inst_all.append(filter_inst(inst))
                                     prob_all.append(prob)
                             except:
                                 pass  # don't know how to deal with this case
                         else:
-                            raise Exception(f'{operation} not considered...')
+                            raise Exception(f"{operation} not considered...")
                     nm_dict[operation][qubit]["instructions"] = inst_all
                     nm_dict[operation][qubit]["probabilities"] = prob_all
         return nm_dict
@@ -364,8 +393,13 @@ class NoiseModelTQ(object):
             }
 
             if info["operations"][0] not in parsed.keys():
-                parsed[info["operations"][0]] = {tuple(info["gate_qubits"][0]): val_dict}
-            elif tuple(info["gate_qubits"][0]) not in parsed[info["operations"][0]].keys():
+                parsed[info["operations"][0]] = {
+                    tuple(info["gate_qubits"][0]): val_dict
+                }
+            elif (
+                tuple(info["gate_qubits"][0])
+                not in parsed[info["operations"][0]].keys()
+            ):
                 parsed[info["operations"][0]][tuple(info["gate_qubits"][0])] = val_dict
             else:
                 raise ValueError
@@ -432,30 +466,36 @@ class NoiseModelTQ(object):
 
         ops = []
         for instruction in instructions:
-            v_wires = [self.p_v_reg_mapping["p2v"][qubit] for qubit in instruction["qubits"]]
+            v_wires = [
+                self.p_v_reg_mapping["p2v"][qubit] for qubit in instruction["qubits"]
+            ]
             if instruction["name"] == "x":
                 ops.append(tq.PauliX(wires=v_wires))
-                self.noise_counter.add('x')
+                self.noise_counter.add("x")
             elif instruction["name"] == "y":
                 ops.append(tq.PauliY(wires=v_wires))
-                self.noise_counter.add('y')
+                self.noise_counter.add("y")
             elif instruction["name"] == "z":
                 ops.append(tq.PauliZ(wires=v_wires))
-                self.noise_counter.add('z')
+                self.noise_counter.add("z")
             elif instruction["name"] == "reset":
                 ops.append(tq.Reset(wires=v_wires))
             elif instruction["name"] == "pauli":
-                twoqubit_depolarization = list(instruction['params'][0])  # ['XY'] --> ['X', 'Y']
-                for singlequbit_deloparization, v_wire in zip(twoqubit_depolarization, v_wires):
-                    if singlequbit_deloparization == 'X':
+                twoqubit_depolarization = list(
+                    instruction["params"][0]
+                )  # ['XY'] --> ['X', 'Y']
+                for singlequbit_deloparization, v_wire in zip(
+                    twoqubit_depolarization, v_wires
+                ):
+                    if singlequbit_deloparization == "X":
                         ops.append(tq.PauliX(wires=[v_wire]))
-                        self.noise_counter.add('X')
-                    elif singlequbit_deloparization == 'Y':
+                        self.noise_counter.add("X")
+                    elif singlequbit_deloparization == "Y":
                         ops.append(tq.PauliY(wires=[v_wire]))
-                        self.noise_counter.add('Y')
-                    elif singlequbit_deloparization == 'Z':
+                        self.noise_counter.add("Y")
+                    elif singlequbit_deloparization == "Z":
                         ops.append(tq.PauliZ(wires=[v_wire]))
-                        self.noise_counter.add('Z')
+                        self.noise_counter.add("Z")
                     else:
                         pass  # 'I' case
             else:
@@ -474,25 +514,24 @@ class NoiseModelTQ(object):
 
 class NoiseModelTQActivation(object):
     """
-        A class for adding noise to the activations.
+    A class for adding noise to the activations.
 
-        Attributes:
-            mean (tuple): Mean values of the noise.
-            std (tuple): Standard deviation values of the noise.
-            n_epochs (int): Number of epochs.
-            prob_schedule (list): Probability schedule.
-            prob_schedule_separator (str): Separator for probability schedule.
-            after_norm (bool): Flag indicating whether noise should be added after normalization.
-            factor (float): Factor for adjusting the noise.
+    Attributes:
+        mean (tuple): Mean values of the noise.
+        std (tuple): Standard deviation values of the noise.
+        n_epochs (int): Number of epochs.
+        prob_schedule (list): Probability schedule.
+        prob_schedule_separator (str): Separator for probability schedule.
+        after_norm (bool): Flag indicating whether noise should be added after normalization.
+        factor (float): Factor for adjusting the noise.
 
-        Methods:
-            adjust_noise(current_epoch): Adjusts the noise based on the current epoch.
-            sample_noise_op(op_in): Samples a noise operation.
-            apply_readout_error(x): Applies readout error to the input.
-            add_noise(x, node_id, is_after_norm): Adds noise to the activations.
+    Methods:
+        adjust_noise(current_epoch): Adjusts the noise based on the current epoch.
+        sample_noise_op(op_in): Samples a noise operation.
+        apply_readout_error(x): Applies readout error to the input.
+        add_noise(x, node_id, is_after_norm): Adds noise to the activations.
 
-        """
-
+    """
 
     def __init__(
         self,
@@ -560,23 +599,23 @@ class NoiseModelTQActivation(object):
 
 class NoiseModelTQPhase(object):
     """
-        A class for adding noise to rotation parameters.
+    A class for adding noise to rotation parameters.
 
-        Attributes:
-            mean (float): Mean value of the noise.
-            std (float): Standard deviation value of the noise.
-            n_epochs (int): Number of epochs.
-            prob_schedule (list): Probability schedule.
-            prob_schedule_separator (str): Separator for probability schedule.
-            factor (float): Factor for adjusting the noise.
+    Attributes:
+        mean (float): Mean value of the noise.
+        std (float): Standard deviation value of the noise.
+        n_epochs (int): Number of epochs.
+        prob_schedule (list): Probability schedule.
+        prob_schedule_separator (str): Separator for probability schedule.
+        factor (float): Factor for adjusting the noise.
 
-        Methods:
-            adjust_noise(current_epoch): Adjusts the noise based on the current epoch.
-            sample_noise_op(op_in): Samples a noise operation.
-            apply_readout_error(x): Applies readout error to the input.
-            add_noise(phase): Adds noise to the rotation parameters.
+    Methods:
+        adjust_noise(current_epoch): Adjusts the noise based on the current epoch.
+        sample_noise_op(op_in): Samples a noise operation.
+        apply_readout_error(x): Applies readout error to the input.
+        add_noise(phase): Adds noise to the rotation parameters.
 
-        """
+    """
 
     def __init__(
         self,
@@ -638,40 +677,43 @@ class NoiseModelTQPhase(object):
 
 class NoiseModelTQReadoutOnly(NoiseModelTQ):
     """
-       A subclass of NoiseModelTQ that applies readout errors only.
+    A subclass of NoiseModelTQ that applies readout errors only.
 
-       This class inherits from NoiseModelTQ and overrides the sample_noise_op method to exclude the insertion of any noise operations other than readout errors. It is designed for scenarios where only readout errors are considered, and all other noise sources are ignored.
+    This class inherits from NoiseModelTQ and overrides the sample_noise_op method to exclude the insertion of any noise operations other than readout errors. It is designed for scenarios where only readout errors are considered, and all other noise sources are ignored.
 
-       Methods:
-           sample_noise_op(op_in): Returns an empty list, indicating no noise operations are applied.
-       """
+    Methods:
+        sample_noise_op(op_in): Returns an empty list, indicating no noise operations are applied.
+    """
+
     def sample_noise_op(self, op_in):
         return []
 
 
 class NoiseModelTQQErrorOnly(NoiseModelTQ):
     """
-        A subclass of NoiseModelTQ that applies only readout errors.
+    A subclass of NoiseModelTQ that applies only readout errors.
 
-        This class inherits from NoiseModelTQ and overrides the apply_readout_error method to apply readout errors. It removes activation noise and only focuses on readout errors in the noise model.
+    This class inherits from NoiseModelTQ and overrides the apply_readout_error method to apply readout errors. It removes activation noise and only focuses on readout errors in the noise model.
 
-        Methods:
-            apply_readout_error(x): Applies readout error to the given activation values.
+    Methods:
+        apply_readout_error(x): Applies readout error to the given activation values.
 
-        """
+    """
+
     def apply_readout_error(self, x):
         return x
 
 
 class NoiseModelTQActivationReadout(NoiseModelTQActivation):
     """
-       A subclass of NoiseModelTQActivation that applies readout errors.
+    A subclass of NoiseModelTQActivation that applies readout errors.
 
-       This class inherits from NoiseModelTQActivation and overrides the apply_readout_error method to incorporate readout errors. It combines activation noise and readout errors into the noise model.
+    This class inherits from NoiseModelTQActivation and overrides the apply_readout_error method to incorporate readout errors. It combines activation noise and readout errors into the noise model.
 
-       Methods:
-           apply_readout_error(x): Applies readout error to the given activation values
-       """
+    Methods:
+        apply_readout_error(x): Applies readout error to the given activation values
+    """
+
     def __init__(
         self,
         noise_model_name,
@@ -713,13 +755,14 @@ class NoiseModelTQActivationReadout(NoiseModelTQActivation):
 
 class NoiseModelTQPhaseReadout(NoiseModelTQPhase):
     """
-        A subclass of NoiseModelTQPhase that applies readout errors to phase values.
+    A subclass of NoiseModelTQPhase that applies readout errors to phase values.
 
-        This class inherits from NoiseModelTQPhase and overrides the apply_readout_error method to apply readout errors specifically to phase values. It uses the noise model provided to introduce readout errors.
+    This class inherits from NoiseModelTQPhase and overrides the apply_readout_error method to apply readout errors specifically to phase values. It uses the noise model provided to introduce readout errors.
 
-        Methods:
-            apply_readout_error(x): Applies readout error to the given phase values.
-        """
+    Methods:
+        apply_readout_error(x): Applies readout error to the given phase values.
+    """
+
     def __init__(
         self,
         noise_model_name,

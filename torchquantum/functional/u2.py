@@ -109,13 +109,14 @@ def u2(
 
     """
     name = "u2"
-    mat = mat_dict[name]
+    mat = _u2_mat_dict[name]
     gate_wrapper(
         name=name,
         mat=mat,
         method=comp_method,
         q_device=q_device,
         wires=wires,
+        paramnum=2,
         params=params,
         n_wires=n_wires,
         static=static,
@@ -156,13 +157,14 @@ def cu2(
 
     """
     name = "cu2"
-    mat = mat_dict[name]
+    mat = _u2_mat_dict[name]
     gate_wrapper(
         name=name,
         mat=mat,
         method=comp_method,
         q_device=q_device,
         wires=wires,
+        paramnum=2,
         params=params,
         n_wires=n_wires,
         static=static,

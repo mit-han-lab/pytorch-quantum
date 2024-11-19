@@ -1,11 +1,12 @@
-import torchquantum as tq
 from qiskit.circuit.library import (
-    TwoLocal,
     EfficientSU2,
     ExcitationPreserving,
     PauliTwoDesign,
     RealAmplitudes,
+    TwoLocal,
 )
+
+import torchquantum as tq
 
 
 def compare_tq_to_qiskit(tq_circuit, qiskit_circuit, instance_info=""):
@@ -16,8 +17,8 @@ def compare_tq_to_qiskit(tq_circuit, qiskit_circuit, instance_info=""):
     qiskit_ops = []
     for bit in qiskit_circuit.decompose():
         wires = []
-        for qu in bit.qubits:
-            wires.append(qu.index)
+        for qb in bit.qubits:
+            wires.append(qiskit_circuit.find_bit(qb).index)
         qiskit_ops.append(
             {
                 "name": bit.operation.name,
@@ -29,9 +30,9 @@ def compare_tq_to_qiskit(tq_circuit, qiskit_circuit, instance_info=""):
     tq_ops = [
         {
             "name": op["name"],
-            "wires": (op["wires"],)
-            if isinstance(op["wires"], int)
-            else tuple(op["wires"]),
+            "wires": (
+                (op["wires"],) if isinstance(op["wires"], int) else tuple(op["wires"])
+            ),
         }
         for op in tq_circuit.op_history
     ]

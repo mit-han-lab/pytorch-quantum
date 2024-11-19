@@ -508,7 +508,7 @@ def toffoli(
 
     """
     name = "toffoli"
-    mat = mat_dict[name]
+    mat =  _x_mat_dict[name]
     gate_wrapper(
         name=name,
         mat=mat,
@@ -552,7 +552,7 @@ def rc3x(
         None.
     """
     name = "rc3x"
-    mat = mat_dict[name]
+    mat =  _x_mat_dict[name]
     gate_wrapper(
         name=name,
         mat=mat,
@@ -596,7 +596,7 @@ def rccx(
         None.
     """
     name = "rccx"
-    mat = mat_dict[name]
+    mat =  _x_mat_dict[name]
     gate_wrapper(
         name=name,
         mat=mat,

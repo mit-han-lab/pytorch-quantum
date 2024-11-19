@@ -126,6 +126,12 @@ class DensityMatrix(nn.Module):
         _matrix = torch.reshape(self._matrix[index], [2 ** self.n_wires] * 2)
         print(_matrix)
 
+        
+    def get_2d_matrix(self, index):
+        _matrix = torch.reshape(self._matrix[index], [2 ** self.n_wires] * 2)
+        return _matrix
+
+
     def trace(self, index):
         """Calculate and return the trace of the density matrix at the given index.
 

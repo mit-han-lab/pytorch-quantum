@@ -24,8 +24,9 @@ SOFTWARE.
 
 import numpy as np
 import torch
+
 from torchquantum.functional.gate_wrapper import gate_wrapper
-from torchquantum.macro import *
+from torchquantum.macro import C_DTYPE
 
 
 def controlled_unitary(
@@ -97,7 +98,7 @@ def controlled_unitary(
     n_wires = n_c_wires + n_t_wires
 
     # compute the new unitary, then permute
-    unitary = torch.tensor(torch.zeros(2**n_wires, 2**n_wires, dtype=C_DTYPE))
+    unitary = torch.zeros(2**n_wires, 2**n_wires, dtype=C_DTYPE)
     for k in range(2**n_wires - 2**n_t_wires):
         unitary[k, k] = 1.0 + 0.0j
 

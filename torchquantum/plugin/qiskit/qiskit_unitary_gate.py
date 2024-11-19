@@ -15,19 +15,16 @@ Arbitrary unitary circuit instruction.
 """
 
 from collections import OrderedDict
-import numpy
 
-from qiskit.circuit import Gate, ControlledGate
-from qiskit.circuit import QuantumCircuit
-from qiskit.circuit import QuantumRegister, Qubit
-from qiskit.circuit.exceptions import CircuitError
+import numpy
+import qiskit
+from qiskit.circuit import ControlledGate, Gate, QuantumCircuit, QuantumRegister, Qubit
 from qiskit.circuit._utils import _compute_control_matrix
+from qiskit.circuit.exceptions import CircuitError
 from qiskit.circuit.library.standard_gates import U3Gate
-from qiskit.quantum_info.operators.predicates import matrix_equal
-from qiskit.quantum_info.operators.predicates import is_unitary_matrix
-from qiskit.quantum_info import OneQubitEulerDecomposer
-from qiskit.quantum_info.synthesis.two_qubit_decompose import two_qubit_cnot_decompose
-from qiskit.extensions.exceptions import ExtensionError
+from qiskit.quantum_info.operators.predicates import is_unitary_matrix, matrix_equal
+from qiskit.synthesis import OneQubitEulerDecomposer
+from qiskit.synthesis.two_qubit.two_qubit_decompose import two_qubit_cnot_decompose
 
 _DECOMPOSER1Q = OneQubitEulerDecomposer("U3")
 
@@ -58,12 +55,12 @@ class UnitaryGate(Gate):
         data = numpy.array(data, dtype=complex)
         # Check input is unitary
         if not is_unitary_matrix(data, atol=1e-5):
-            raise ExtensionError("Input matrix is not unitary.")
+            raise ValueError("Input matrix is not unitary.")
         # Check input is N-qubit matrix
         input_dim, output_dim = data.shape
         num_qubits = int(numpy.log2(input_dim))
         if input_dim != output_dim or 2**num_qubits != input_dim:
-            raise ExtensionError("Input matrix is not an N-qubit operator.")
+            raise ValueError("Input matrix is not an N-qubit operator.")
 
         self._qasm_name = None
         self._qasm_definition = None
@@ -116,7 +113,9 @@ class UnitaryGate(Gate):
         else:
             q = QuantumRegister(self.num_qubits, "q")
             qc = QuantumCircuit(q, name=self.name)
-            qc.append(qiskit.circuit.library.Isometry(self.to_matrix(), 0, 0), qargs=q[:])
+            qc.append(
+                qiskit.circuit.library.Isometry(self.to_matrix(), 0, 0), qargs=q[:]
+            )
             self.definition = qc
 
     def control(self, num_ctrl_qubits=1, label=None, ctrl_state=None):
@@ -155,7 +154,7 @@ class UnitaryGate(Gate):
         pmat = Operator(iso.inverse()).data @ cmat
         diag = numpy.diag(pmat)
         if not numpy.allclose(diag, diag[0]):
-            raise ExtensionError("controlled unitary generation failed")
+            raise ValueError("controlled unitary generation failed")
         phase = numpy.angle(diag[0])
         if phase:
             # need to apply to _definition since open controls creates temporary definition

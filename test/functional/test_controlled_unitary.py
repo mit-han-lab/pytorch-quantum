@@ -22,9 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import torchquantum as tq
 from test.utils import check_all_close
+
 import numpy as np
+
+import torchquantum as tq
 
 
 def test_controlled_unitary():

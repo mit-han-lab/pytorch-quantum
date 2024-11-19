@@ -1,14 +1,10 @@
-import torchquantum as tq
-import qiskit
-from qiskit import Aer, execute
-
-from torchquantum.util import (
-    switch_little_big_endian_matrix,
-    find_global_phase,
-)
-
-from qiskit.circuit.library import GR, GRX, GRY, GRZ
 import numpy as np
+from qiskit import transpile
+from qiskit.circuit.library import GR, GRX, GRY, GRZ
+from qiskit_aer import AerSimulator
+
+import torchquantum as tq
+from torchquantum.util import find_global_phase, switch_little_big_endian_matrix
 
 all_pairs = [
     {"qiskit": GR, "tq": tq.layer.GlobalR, "params": 2},
@@ -19,6 +15,7 @@ all_pairs = [
 
 ITERATIONS = 2
 
+
 def test_rotgates():
     # test each pair
     for pair in all_pairs:
@@ -28,15 +25,18 @@ def test_rotgates():
             for _ in range(ITERATIONS):
                 # generate random parameters
                 params = [
-                    np.random.uniform(-2 * np.pi, 2 * np.pi) for _ in range(pair["params"])
+                    np.random.uniform(-2 * np.pi, 2 * np.pi)
+                    for _ in range(pair["params"])
                 ]
 
                 # create the qiskit circuit
                 qiskit_circuit = pair["qiskit"](num_wires, *params)
 
                 # get the unitary from qiskit
-                backend = Aer.get_backend("unitary_simulator")
-                result = execute(qiskit_circuit, backend).result()
+                backend = AerSimulator(method="unitary")
+                qiskit_circuit = transpile(qiskit_circuit, backend)
+                qiskit_circuit.save_unitary()
+                result = backend.run(qiskit_circuit).result()
                 unitary_qiskit = result.get_unitary(qiskit_circuit)
 
                 # create tq circuit

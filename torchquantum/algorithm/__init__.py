@@ -22,7 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-from .vqe import *
-from .hamiltonian import *
-from .qft import *
-from .grover import *
+from .vqe import VQE
+from .hamiltonian import Hamiltonian
+from .qft import QFT
+from .grover import Grover
+from .qcbm import QCBM, MMDLoss

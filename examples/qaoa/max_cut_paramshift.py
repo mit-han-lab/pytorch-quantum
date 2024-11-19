@@ -148,7 +148,7 @@ class MAXCUT(tq.QuantumModule):
             self.mixer(qdev, self.betas[i], i)
             self.entangler(qdev, self.gammas[i], i)
 
-    def forward(self, use_qiskit):
+    def forward(self, use_qiskit, measure_all=False):
         """
         Apply the QAOA ansatz and only measure the edge qubit on z-basis.
         Args:
@@ -266,7 +266,7 @@ def param_shift_optimize(model, n_steps=10, step_size=0.1, use_qiskit=False):
         #         *model.parameters()
         #     )
         # )
-    return model(measure_all=True)
+    return model(use_qiskit=False,measure_all=True)
 
 
 """
@@ -284,8 +284,8 @@ def main(use_qiskit):
     model = MAXCUT(n_wires=n_wires, input_graph=input_graph, n_layers=n_layers)
     
     # set the qiskit processor
-    processor_simulation = QiskitProcessor(use_real_qc=False, n_shots=10000)
-    model.set_qiskit_processor(processor_simulation)
+    #processor_simulation = QiskitProcessor(use_real_qc=False, n_shots=10000)
+    #model.set_qiskit_processor(processor_simulation)
 
      # firstly perform simulate
     # model.to("cuda")

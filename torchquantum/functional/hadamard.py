@@ -160,7 +160,7 @@ def chadamard(
 
     name = "chadamard"
 
-    mat = mat_dict[name]
+    mat = _hadamard_mat_dict[name]
     gate_wrapper(
         name=name,
         mat=mat,

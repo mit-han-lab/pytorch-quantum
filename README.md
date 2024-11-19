@@ -1,5 +1,5 @@
 <p align="center">
-<img src="torchquantum_logo.jpg" alt="torchquantum Logo" width="450">
+<img src="https://github.com/mit-han-lab/torchquantum/blob/main/torchquantum_logo.jpg?raw=true" alt="torchquantum Logo" width="450">
 </p>
 
 <h2><p align="center">Quantum Computing in PyTorch</p></h2>
@@ -55,7 +55,7 @@ Simulate quantum computations on classical hardware using PyTorch. It supports s
 Researchers on quantum algorithm design, parameterized quantum circuit training, quantum optimal control, quantum machine learning, quantum neural networks.
 #### Differences from Qiskit/Pennylane
 
-Dynamic computation graph, automatic gradient computation, fast GPU support, batch model tersorized processing.
+Dynamic computation graph, automatic gradient computation, fast GPU support, batch model tensorized processing.
 
 ## News
 - Torchquantum is used in the winning team for ACM Quantum Computing for Drug Discovery Challenge.

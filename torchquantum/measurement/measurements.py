@@ -43,13 +43,9 @@ def measure(qdev, n_shots=1024, draw_id=None):
         distribution of bitstrings
     """
     bitstring_candidates = gen_bitstrings(qdev.n_wires)
-    if isinstance(qdev, tq.QuantumDevice):
-        state_mag = qdev.get_states_1d().abs().detach().cpu().numpy()
-    elif isinstance(qdev, tq.NoiseDevice):
-        '''
-        Measure the density matrix in the computational basis
-        '''
-        state_mag = qdev.get_probs_1d().abs().detach().cpu().numpy()
+
+    #state_prob =
+    state_mag = qdev.get_states_1d().abs().detach().cpu().numpy()
     distri_all = []
 
     for state_mag_one in state_mag:
@@ -285,6 +281,7 @@ def expval(
         observables: Union[op.Observable, List[op.Observable]],
 ):
     all_dims = np.arange(qdev.states.dim())
+
     if isinstance(wires, int):
         wires = [wires]
         observables = [observables]
@@ -295,9 +292,9 @@ def expval(
             rotation(qdev, wires=wire)
 
     states = qdev.states
+
     # compute magnitude
     state_mag = torch.abs(states) ** 2
-
     expectations = []
     for wire, observable in zip(wires, observables):
         # compute marginal magnitude
@@ -424,7 +421,7 @@ class MeasureMultiPauliSum(tq.QuantumModule):
         )
 
     def forward(self, qdev: tq.QuantumDevice):
-        res_all = self.measure_multiple_times(qdev)
+        res_all = self.measure_multiple_times(qdev).prod(-1)
 
         return res_all.sum(-1)
 
@@ -452,8 +449,9 @@ class MeasureMultiQubitPauliSum(tq.QuantumModule):
         )
 
     def forward(self, qdev: tq.QuantumDevice):
-        res_all = self.measure_multiple_times(qdev)
-        return (res_all * self.obs_list[0]["coefficient"]).sum(-1)
+        res_all = self.measure_multiple_times(qdev).prod(-1)
+        
+        return (res_all * torch.tensor(self.obs_list[0]["coefficient"])).sum(-1)
 
 
 if __name__ == '__main__':

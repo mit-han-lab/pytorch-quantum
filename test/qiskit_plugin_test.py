@@ -24,21 +24,22 @@ SOFTWARE.
 
 import argparse
 import pdb
-import torch
-import torchquantum as tq
-import numpy as np
+from test.static_mode_test import QLayer as AllRandomLayer
 
-from qiskit import Aer, execute
+import numpy as np
+import torch
+from qiskit_aer import AerSimulator
 from torchpack.utils.logging import logger
+
+import torchquantum as tq
+from torchquantum.macro import F_DTYPE
+from torchquantum.plugin import tq2qiskit
 from torchquantum.util import (
+    find_global_phase,
+    get_expectations_from_counts,
     switch_little_big_endian_matrix,
     switch_little_big_endian_state,
-    get_expectations_from_counts,
-    find_global_phase,
 )
-from test.static_mode_test import QLayer as AllRandomLayer
-from torchquantum.plugin import tq2qiskit
-from torchquantum.macro import F_DTYPE
 
 
 def unitary_tq_vs_qiskit_test():
@@ -59,8 +60,9 @@ def unitary_tq_vs_qiskit_test():
 
         # qiskit
         circ = tq2qiskit(q_layer, x)
-        simulator = Aer.get_backend("unitary_simulator")
-        result = execute(circ, simulator).result()
+        simulator = AerSimulator(method="unitary")
+        circ.save_unitary()
+        result = simulator.run(circ).result()
         unitary_qiskit = result.get_unitary(circ)
 
         stable_threshold = 1e-5
@@ -115,10 +117,11 @@ def state_tq_vs_qiskit_test():
         # qiskit
         circ = tq2qiskit(q_layer, x)
         # Select the StatevectorSimulator from the Aer provider
-        simulator = Aer.get_backend("statevector_simulator")
+        simulator = AerSimulator(method="statevector")
+        circ.save_statevector()
 
         # Execute and get counts
-        result = execute(circ, simulator).result()
+        result = simulator.run(circ).result()
         state_qiskit = result.get_statevector(circ)
 
         stable_threshold = 1e-5
@@ -175,11 +178,10 @@ def measurement_tq_vs_qiskit_test():
         circ = tq2qiskit(q_layer, x)
         circ.measure(list(range(n_wires)), list(range(n_wires)))
 
-        # Select the QasmSimulator from the Aer provider
-        simulator = Aer.get_backend("qasm_simulator")
+        simulator = AerSimulator()
 
         # Execute and get counts
-        result = execute(circ, simulator, shots=1000000).result()
+        result = simulator.run(circ, shots=1000000).result()
         counts = result.get_counts(circ)
         measured_qiskit = get_expectations_from_counts(counts, n_wires=n_wires)
 

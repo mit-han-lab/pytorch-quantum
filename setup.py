@@ -37,6 +37,7 @@ if __name__ == "__main__":
         name="torchquantum",
         version=VERSION["version"],
         description="Quantum Computing in PyTorch",
+        long_description=open("README.md").read(),
         url="https://github.com/mit-han-lab/torchquantum",
         author="Shreya Chaudhary, Zhuoyang Ye, Jiannan Cao, Jessica Ding, Jiai Gu, Song Han, Zirui Li, Zhiding Liang, Pengyu Liu, Mohammadreza Tavasoli, Hanrui Wang",
         author_email="hanruiwang.hw@gmail.com",

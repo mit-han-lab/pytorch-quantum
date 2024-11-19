@@ -217,7 +217,7 @@ def apply_unitary_density_bmm(density, mat, wires):
     permute_to_dag = permute_to_dag + devices_dims_dag
     permute_back_dag = list(np.argsort(permute_to_dag))
     original_shape = new_density.shape
-    permuted_dag = new_density.permute(permute_to_dag).reshape([original_shape[0], -1, matdag.shape[0]])
+    permuted_dag = new_density.permute(permute_to_dag).reshape([original_shape[0], -1, matdag.shape[-1]])
 
     if len(matdag.shape) > 2:
         # both matrix and state are in batch mode

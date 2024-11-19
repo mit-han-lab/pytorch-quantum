@@ -100,9 +100,22 @@ class QFCModel(tq.QuantumModule):
         bsz = x.shape[0]
         x = F.avg_pool2d(x, 6).view(bsz, 16)
 
+
+        print("Shape 1:")
+        print(self.q_device.states.shape)
         self.encoder(self.q_device, x)
         self.q_layer(self.q_device)
+
+
+
+        print("X shape before measurement")
+        print(x.shape)
+
         x = self.measure(self.q_device)
+
+
+        print("X shape after measurement")
+        print(x.shape)
 
         x = x.reshape(bsz, 2, 2).sum(-1).squeeze()
         x = F.log_softmax(x, dim=1)

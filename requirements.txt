@@ -2,16 +2,16 @@
 dill==0.3.4
 matplotlib>=3.3.2
 nbsphinx
-numpy>=1.19.2
+numpy>=1.19.2,<2
 
 opt_einsum
 pathos>=0.2.7
 pylatexenc>=2.10
 pyscf>=2.0.1
-qiskit>=0.39.0,<1.0.0
+qiskit>=1.0.0
 recommonmark
-qiskit_ibm_runtime==0.20.0
-qiskit-aer==0.13.3
+qiskit-ibm-runtime>=0.20.0
+qiskit-aer>=0.13.3
 
 scipy>=1.5.2
 setuptools>=52.0.0

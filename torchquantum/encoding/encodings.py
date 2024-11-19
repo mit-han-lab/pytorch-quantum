@@ -39,6 +39,7 @@ class Encoder(tq.QuantumModule):
         - forward(qdev: tq.QuantumDevice, x): Performs the encoding using a quantum device.
 
     """
+
     def __init__(self):
         super().__init__()
         pass
@@ -80,6 +81,18 @@ class GeneralEncoder(Encoder, metaclass=ABCMeta):
     {'input_idx': [12, 13, 14], 'func': 'u3', 'wires': [3]},
     {'input_idx': [15], 'func': 'u1', 'wires': [3]},
     ]
+
+    Example 3:
+    [
+    {'params': [0.25], 'func': 'rx', 'wires': [0]},
+    {'params': [0.25], 'func': 'rx', 'wires': [1]},
+    {'params': [0.25], 'func': 'rx', 'wires': [2]},
+    {'params': [0.25], 'func': 'rx', 'wires': [3]},
+    {'input_idx': [0], 'func': 'ry', 'wires': [0]},
+    {'input_idx': [1], 'func': 'ry', 'wires': [1]},
+    {'input_idx': [2], 'func': 'ry', 'wires': [2]},
+    {'input_idx': [3], 'func': 'ry', 'wires': [3]}
+    ]
     """
 
     def __init__(self, func_list):
@@ -90,7 +103,11 @@ class GeneralEncoder(Encoder, metaclass=ABCMeta):
     def forward(self, qdev: tq.QuantumDevice, x):
         for info in self.func_list:
             if tq.op_name_dict[info["func"]].num_params > 0:
-                params = x[:, info["input_idx"]]
+                # If params are provided in encoder, use those,
+                #  else use params from x
+                params = (torch.Tensor(info["params"]).repeat(x.shape[0], 1)
+                          if info.get("params")
+                          else x[:, info["input_idx"]])
             else:
                 params = None
             func_name_dict[info["func"]](
@@ -133,6 +150,7 @@ class GeneralEncoder(Encoder, metaclass=ABCMeta):
 class PhaseEncoder(Encoder, metaclass=ABCMeta):
     """PhaseEncoder is a subclass of Encoder and represents a phase encoder.
     It applies a specified quantum function to encode input data using a quantum device."""
+
     def __init__(self, func):
         super().__init__()
         self.func = func
@@ -163,6 +181,7 @@ class PhaseEncoder(Encoder, metaclass=ABCMeta):
 class MultiPhaseEncoder(Encoder, metaclass=ABCMeta):
     """PhaseEncoder is a subclass of Encoder and represents a phase encoder.
     It applies a specified quantum function to encode input data using a quantum device."""
+
     def __init__(self, funcs, wires=None):
         super().__init__()
         self.funcs = funcs if isinstance(funcs, Iterable) else [funcs]
@@ -198,7 +217,7 @@ class MultiPhaseEncoder(Encoder, metaclass=ABCMeta):
             func_name_dict[func](
                 qdev,
                 wires=self.wires[k],
-                params=x[:, x_id : (x_id + stride)],
+                params=x[:, x_id: (x_id + stride)],
                 static=self.static_mode,
                 parent_graph=self.graph,
             )
@@ -208,6 +227,7 @@ class MultiPhaseEncoder(Encoder, metaclass=ABCMeta):
 class StateEncoder(Encoder, metaclass=ABCMeta):
     """StateEncoder is a subclass of Encoder and represents a state encoder.
     It encodes the input data into the state vector of a quantum device."""
+
     def __init__(self):
         super().__init__()
 
@@ -230,19 +250,24 @@ class StateEncoder(Encoder, metaclass=ABCMeta):
             (
                 x,
                 torch.zeros(
-                    x.shape[0], 2**qdev.n_wires - x.shape[1], device=x.device
+                    x.shape[0], 2 ** qdev.n_wires - x.shape[1], device=x.device
                 ),
             ),
             dim=-1,
         )
         state = state.view([x.shape[0]] + [2] * qdev.n_wires)
 
-        qdev.states = state.type(C_DTYPE)
+        #TODO: Change to united format
+        if qdev.device_name == "noisedevice":
+            qdev.clone_from_states(state.type(C_DTYPE))
+        else:
+            qdev.states = state.type(C_DTYPE)
 
 
 class MagnitudeEncoder(Encoder, metaclass=ABCMeta):
     """MagnitudeEncoder is a subclass of Encoder and represents a magnitude encoder.
     It encodes the input data by considering the magnitudes of the elements."""
+
     def __init__(self):
         super().__init__()
 

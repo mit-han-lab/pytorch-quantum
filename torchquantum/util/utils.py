@@ -22,27 +22,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from __future__ import annotations
+
 import copy
-from typing import Dict, Iterable, List, TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from opt_einsum import contract
-from qiskit_ibm_runtime import QiskitRuntimeService
 from qiskit.exceptions import QiskitError
-from qiskit.providers.aer.noise.device.parameters import gate_error_values
 from torchpack.utils.config import Config
 from torchpack.utils.logging import logger
 
 import torchquantum as tq
 from torchquantum.macro import C_DTYPE
 
-
 if TYPE_CHECKING:
-    from torchquantum.module import QuantumModule
     from torchquantum.device import QuantumDevice
+    from torchquantum.module import QuantumModule
 else:
     QuantumModule = None
     QuantumDevice = None
@@ -98,14 +97,14 @@ def pauli_eigs(n) -> np.ndarray:
 
 def diag(x):
     """
-        Compute the diagonal matrix from a given input tensor.
+    Compute the diagonal matrix from a given input tensor.
 
-        Args:
-            x (torch.Tensor): Input tensor.
+    Args:
+        x (torch.Tensor): Input tensor.
 
-        Returns:
-            torch.Tensor: Diagonal matrix with the diagonal elements from the input tensor.
-        """
+    Returns:
+        torch.Tensor: Diagonal matrix with the diagonal elements from the input tensor.
+    """
     # input tensor, output tensor with diagonal as the input
     # manual implementation because torch.diag does not support autograd of
     # complex number
@@ -120,20 +119,21 @@ def diag(x):
 
 class Timer(object):
     """
-       Timer class to measure the execution time of a code block.
+    Timer class to measure the execution time of a code block.
 
-       Args:
-           device (str): Device to use for timing. Can be "gpu" or "cpu".
-           name (str): Name of the task being measured.
-           times (int): Number of times the task will be executed.
+    Args:
+        device (str): Device to use for timing. Can be "gpu" or "cpu".
+        name (str): Name of the task being measured.
+        times (int): Number of times the task will be executed.
 
-       Example:
-           # Measure the execution time of a code block on the GPU
-           with Timer(device="gpu", name="MyTask", times=100):
-               # Code block to be measured
-               ...
+    Example:
+        # Measure the execution time of a code block on the GPU
+        with Timer(device="gpu", name="MyTask", times=100):
+            # Code block to be measured
+            ...
 
-       """
+    """
+
     def __init__(self, device="gpu", name="", times=100):
         self.device = device
         self.name = name
@@ -158,20 +158,20 @@ class Timer(object):
 
 def get_unitary_loss(model: nn.Module):
     """
-        Calculate the unitary loss of a model.
+    Calculate the unitary loss of a model.
 
-        The unitary loss measures the deviation of the trainable unitary matrices
-        in the model from the identity matrix.
+    The unitary loss measures the deviation of the trainable unitary matrices
+    in the model from the identity matrix.
 
-        Args:
-            model (nn.Module): The model containing trainable unitary matrices.
+    Args:
+        model (nn.Module): The model containing trainable unitary matrices.
 
-        Returns:
-            torch.Tensor: The unitary loss.
+    Returns:
+        torch.Tensor: The unitary loss.
 
-        Example:
-            loss = get_unitary_loss(model)
-        """
+    Example:
+        loss = get_unitary_loss(model)
+    """
     loss = 0
     for name, params in model.named_parameters():
         if "TrainableUnitary" in name:
@@ -187,21 +187,21 @@ def get_unitary_loss(model: nn.Module):
 
 def legalize_unitary(model: nn.Module):
     """
-        Legalize the unitary matrices in the model.
+    Legalize the unitary matrices in the model.
 
-        The function modifies the trainable unitary matrices in the model by applying
-        singular value decomposition (SVD) and reassembling the matrices using the
-        reconstructed singular values.
+    The function modifies the trainable unitary matrices in the model by applying
+    singular value decomposition (SVD) and reassembling the matrices using the
+    reconstructed singular values.
 
-        Args:
-            model (nn.Module): The model containing trainable unitary matrices.
+    Args:
+        model (nn.Module): The model containing trainable unitary matrices.
 
-        Returns:
-            None
+    Returns:
+        None
 
-        Example:
-            legalize_unitary(model)
-        """
+    Example:
+        legalize_unitary(model)
+    """
     with torch.no_grad():
         for name, params in model.named_parameters():
             if "TrainableUnitary" in name:
@@ -212,22 +212,22 @@ def legalize_unitary(model: nn.Module):
 
 def switch_little_big_endian_matrix(mat):
     """
-        Switches the little-endian and big-endian order of a multi-dimensional matrix.
+    Switches the little-endian and big-endian order of a multi-dimensional matrix.
 
-        The function reshapes the input matrix to a 2D or multi-dimensional matrix with dimensions
-        that are powers of 2. It then switches the order of the dimensions, effectively changing
-        the little-endian order to big-endian, or vice versa. The function can handle both
-        batched and non-batched matrices.
+    The function reshapes the input matrix to a 2D or multi-dimensional matrix with dimensions
+    that are powers of 2. It then switches the order of the dimensions, effectively changing
+    the little-endian order to big-endian, or vice versa. The function can handle both
+    batched and non-batched matrices.
 
-        Args:
-            mat (numpy.ndarray): The input matrix.
+    Args:
+        mat (numpy.ndarray): The input matrix.
 
-        Returns:
-            numpy.ndarray: The matrix with the switched endian order.
+    Returns:
+        numpy.ndarray: The matrix with the switched endian order.
 
-        Example:
-            switched_mat = switch_little_big_endian_matrix(mat)
-        """
+    Example:
+        switched_mat = switch_little_big_endian_matrix(mat)
+    """
     if len(mat.shape) % 2 == 1:
         is_batch_matrix = True
         bsz = mat.shape[0]
@@ -251,25 +251,25 @@ def switch_little_big_endian_matrix(mat):
 
 def switch_little_big_endian_state(state):
     """
-       Switches the little-endian and big-endian order of a quantum state vector.
+    Switches the little-endian and big-endian order of a quantum state vector.
 
-       The function reshapes the input state vector to a 1D or multi-dimensional state vector with
-       dimensions that are powers of 2. It then switches the order of the dimensions, effectively
-       changing the little-endian order to big-endian, or vice versa. The function can handle both
-       batched and non-batched state vectors.
+    The function reshapes the input state vector to a 1D or multi-dimensional state vector with
+    dimensions that are powers of 2. It then switches the order of the dimensions, effectively
+    changing the little-endian order to big-endian, or vice versa. The function can handle both
+    batched and non-batched state vectors.
 
-       Args:
-           state (numpy.ndarray): The input state vector.
+    Args:
+        state (numpy.ndarray): The input state vector.
 
-       Returns:
-           numpy.ndarray: The state vector with the switched endian order.
+    Returns:
+        numpy.ndarray: The state vector with the switched endian order.
 
-       Raises:
-           ValueError: If the dimension of the state vector is not 1 or 2.
+    Raises:
+        ValueError: If the dimension of the state vector is not 1 or 2.
 
-       Example:
-           switched_state = switch_little_big_endian_state(state)
-       """
+    Example:
+        switched_state = switch_little_big_endian_state(state)
+    """
 
     if len(state.shape) > 1:
         is_batch_state = True
@@ -279,7 +279,7 @@ def switch_little_big_endian_state(state):
         is_batch_state = False
         reshape = [2] * int(np.log2(state.size))
     else:
-        logger.exception(f"Dimension of statevector should be 1 or 2")
+        logger.exception("Dimension of statevector should be 1 or 2")
         raise ValueError
 
     original_shape = state.shape
@@ -310,25 +310,25 @@ def switch_little_big_endian_state_test():
 
 def get_expectations_from_counts(counts, n_wires):
     """
-       Calculate expectation values from counts.
+    Calculate expectation values from counts.
 
-       This function takes a counts dictionary or a list of counts dictionaries
-       and calculates the expectation values based on the probability of measuring
-       the state '1' on each wire. The expectation values are computed as the
-       flipped difference between the probability of measuring '1' and the probability
-       of measuring '0' on each wire.
+    This function takes a counts dictionary or a list of counts dictionaries
+    and calculates the expectation values based on the probability of measuring
+    the state '1' on each wire. The expectation values are computed as the
+    flipped difference between the probability of measuring '1' and the probability
+    of measuring '0' on each wire.
 
-       Args:
-           counts (dict or list[dict]): The counts dictionary or a list of counts dictionaries.
-           n_wires (int): The number of wires.
+    Args:
+        counts (dict or list[dict]): The counts dictionary or a list of counts dictionaries.
+        n_wires (int): The number of wires.
 
-       Returns:
-           numpy.ndarray: The expectation values.
+    Returns:
+        numpy.ndarray: The expectation values.
 
-       Example:
-           counts = {'000': 10, '100': 5, '010': 15}
-           expectations = get_expectations_from_counts(counts, 3)
-       """
+    Example:
+        counts = {'000': 10, '100': 5, '010': 15}
+        expectations = get_expectations_from_counts(counts, 3)
+    """
     exps = []
     if isinstance(counts, dict):
         counts = [counts]
@@ -349,29 +349,33 @@ def get_expectations_from_counts(counts, n_wires):
 
 def find_global_phase(mat1, mat2, threshold):
     """
-        Find a numerical stable global phase between two matrices.
+    Find a numerical stable global phase between two matrices.
 
-        This function compares the elements of two matrices `mat1` and `mat2`
-        and identifies a numerical stable global phase by finding the first
-        non-zero element pair with absolute values greater than the specified
-        threshold. The global phase is calculated as the ratio of the corresponding
-        elements in `mat2` and `mat1`.
+    This function compares the elements of two matrices `mat1` and `mat2`
+    and identifies a numerical stable global phase by finding the first
+    non-zero element pair with absolute values greater than the specified
+    threshold. The global phase is calculated as the ratio of the corresponding
+    elements in `mat2` and `mat1`.
 
-        Args:
-            mat1 (numpy.ndarray): The first matrix.
-            mat2 (numpy.ndarray): The second matrix.
-            threshold (float): The threshold for identifying non-zero elements.
+    Args:
+        mat1 (numpy.ndarray): The first matrix.
+        mat2 (numpy.ndarray): The second matrix.
+        threshold (float): The threshold for identifying non-zero elements.
 
-        Returns:
-            float or None: The global phase ratio if a numerical stable phase is found,
-                None otherwise.
+    Returns:
+        float or None: The global phase ratio if a numerical stable phase is found,
+            None otherwise.
 
-        Example:
-            mat1 = np.array([[1+2j, 0+1j], [0-1j, 2+3j]])
-            mat2 = np.array([[2+4j, 0+2j], [0-2j, 4+6j]])
-            threshold = 0.5
-            global_phase = find_global_phase(mat1, mat2, threshold)
-        """
+    Example:
+        mat1 = np.array([[1+2j, 0+1j], [0-1j, 2+3j]])
+        mat2 = np.array([[2+4j, 0+2j], [0-2j, 4+6j]])
+        threshold = 0.5
+        global_phase = find_global_phase(mat1, mat2, threshold)
+    """
+    if not isinstance(mat1, np.ndarray):
+        mat1 = np.asarray(mat1)
+    if not isinstance(mat2, np.ndarray):
+        mat2 = np.asarray(mat2)
     for i in range(mat1.shape[0]):
         for j in range(mat1.shape[1]):
             # find a numerical stable global phase
@@ -380,7 +384,7 @@ def find_global_phase(mat1, mat2, threshold):
     return None
 
 
-def build_module_op_list(m: QuantumModule, x=None) -> List:
+def build_module_op_list(m: QuantumModule, x=None) -> list:
     """
     serialize all operations in the module and generate a list with
     [{'name': RX, 'has_params': True, 'trainable': True, 'wires': [0],
@@ -435,39 +439,39 @@ def build_module_op_list(m: QuantumModule, x=None) -> List:
 
 
 def build_module_from_op_list(
-    op_list: List[Dict], remove_ops=False, thres=None
+    op_list: list[dict], remove_ops=False, thres=None
 ) -> QuantumModule:
     """
-       Build a quantum module from an operation list.
+    Build a quantum module from an operation list.
 
-       This function takes an operation list, which contains dictionaries representing
-       quantum operations, and constructs a quantum module from those operations.
-       The module can optionally remove operations based on certain criteria, such as
-       low parameter values. The removed operations can be counted and logged.
+    This function takes an operation list, which contains dictionaries representing
+    quantum operations, and constructs a quantum module from those operations.
+    The module can optionally remove operations based on certain criteria, such as
+    low parameter values. The removed operations can be counted and logged.
 
-       Args:
-           op_list (List[Dict]): The operation list, where each dictionary represents
-               an operation with keys: "name", "has_params", "trainable", "wires",
-               "n_wires", and "params".
-           remove_ops (bool): Whether to remove operations based on certain criteria.
-               Defaults to False.
-           thres (float): The threshold for removing operations. If a parameter value
-               is smaller in absolute value than this threshold, the corresponding
-               operation is removed. Defaults to None, in which case a threshold of
-               1e-5 is used.
+    Args:
+        op_list (List[Dict]): The operation list, where each dictionary represents
+            an operation with keys: "name", "has_params", "trainable", "wires",
+            "n_wires", and "params".
+        remove_ops (bool): Whether to remove operations based on certain criteria.
+            Defaults to False.
+        thres (float): The threshold for removing operations. If a parameter value
+            is smaller in absolute value than this threshold, the corresponding
+            operation is removed. Defaults to None, in which case a threshold of
+            1e-5 is used.
 
-       Returns:
-           QuantumModule: The constructed quantum module.
+    Returns:
+        QuantumModule: The constructed quantum module.
 
-       Example:
-           op_list = [
-               {"name": "RX", "has_params": True, "trainable": True, "wires": [0], "n_wires": 2, "params": [0.5]},
-               {"name": "CNOT", "has_params": False, "trainable": False, "wires": [0, 1], "n_wires": 2, "params": None},
-               {"name": "RY", "has_params": True, "trainable": True, "wires": [1], "n_wires": 2, "params": [1.2]},
-           ]
-           module = build_module_from_op_list(op_list, remove_ops=True, thres=0.1)
-       """
-    logger.info(f"Building module from op_list...")
+    Example:
+        op_list = [
+            {"name": "RX", "has_params": True, "trainable": True, "wires": [0], "n_wires": 2, "params": [0.5]},
+            {"name": "CNOT", "has_params": False, "trainable": False, "wires": [0, 1], "n_wires": 2, "params": None},
+            {"name": "RY", "has_params": True, "trainable": True, "wires": [1], "n_wires": 2, "params": [1.2]},
+        ]
+        module = build_module_from_op_list(op_list, remove_ops=True, thres=0.1)
+    """
+    logger.info("Building module from op_list...")
     thres = 1e-5 if thres is None else thres
     n_removed_ops = 0
     ops = []
@@ -499,38 +503,38 @@ def build_module_from_op_list(
     if n_removed_ops > 0:
         logger.warning(f"Remove in total {n_removed_ops} pruned operations.")
     else:
-        logger.info(f"Do not remove any operations.")
+        logger.info("Do not remove any operations.")
 
     return tq.QuantumModuleFromOps(ops)
 
 
 def build_module_description_test():
     """
-        Test function for building module descriptions.
+    Test function for building module descriptions.
 
-        This function demonstrates the usage of `build_module_op_list` and `build_module_from_op_list`
-        functions to build module descriptions and create quantum modules from those descriptions.
+    This function demonstrates the usage of `build_module_op_list` and `build_module_from_op_list`
+    functions to build module descriptions and create quantum modules from those descriptions.
 
-        Example:
-            import pdb
-            from torchquantum.plugins import tq2qiskit
-            from examples.core.models.q_models import QFCModel12
+    Example:
+        import pdb
+        from torchquantum.plugins import tq2qiskit
+        from examples.core.models.q_models import QFCModel12
 
-            pdb.set_trace()
-            q_model = QFCModel12({"n_blocks": 4})
-            desc = build_module_op_list(q_model.q_layer)
-            print(desc)
-            q_dev = tq.QuantumDevice(n_wires=4)
-            m = build_module_from_op_list(desc)
-            tq2qiskit(q_dev, m, draw=True)
+        pdb.set_trace()
+        q_model = QFCModel12({"n_blocks": 4})
+        desc = build_module_op_list(q_model.q_layer)
+        print(desc)
+        q_dev = tq.QuantumDevice(n_wires=4)
+        m = build_module_from_op_list(desc)
+        tq2qiskit(q_dev, m, draw=True)
 
-            desc = build_module_op_list(
-                tq.RandomLayerAllTypes(n_ops=200, wires=[0, 1, 2, 3], qiskit_compatible=True)
-            )
-            print(desc)
-            m1 = build_module_from_op_list(desc)
-            tq2qiskit(q_dev, m1, draw=True)
-        """
+        desc = build_module_op_list(
+            tq.RandomLayerAllTypes(n_ops=200, wires=[0, 1, 2, 3], qiskit_compatible=True)
+        )
+        print(desc)
+        m1 = build_module_from_op_list(desc)
+        tq2qiskit(q_dev, m1, draw=True)
+    """
     import pdb
 
     from torchquantum.plugin import tq2qiskit
@@ -560,7 +564,7 @@ def get_p_v_reg_mapping(circ):
     """
     try:
         p2v_orig = circ._layout.final_layout.get_physical_bits().copy()
-    except:
+    except AttributeError:
         p2v_orig = circ._layout.get_physical_bits().copy()
     mapping = {
         "p2v": {},
@@ -601,7 +605,7 @@ def get_v_c_reg_mapping(circ):
     """
     try:
         p2v_orig = circ._layout.final_layout.get_physical_bits().copy()
-    except:
+    except AttributeError:
         p2v_orig = circ._layout.get_physical_bits().copy()
     p2v = {}
     for p, v in p2v_orig.items():
@@ -630,15 +634,15 @@ def get_v_c_reg_mapping(circ):
 
 def get_cared_configs(conf, mode) -> Config:
     """
-        Get the relevant configurations based on the mode.
+    Get the relevant configurations based on the mode.
 
-        Args:
-            conf (Config): The configuration object.
-            mode (str): The mode indicating the desired configuration.
+    Args:
+        conf (Config): The configuration object.
+        mode (str): The mode indicating the desired configuration.
 
-        Returns:
-            Config: The modified configuration object with only the relevant configurations preserved.
-        """
+    Returns:
+        Config: The modified configuration object with only the relevant configurations preserved.
+    """
 
     conf = copy.deepcopy(conf)
     ignores = [
@@ -706,55 +710,39 @@ def get_cared_configs(conf, mode) -> Config:
 
 def get_success_rate(properties, transpiled_circ):
     """
-        Estimate the success rate of a transpiled quantum circuit.
+    Estimate the success rate of a transpiled quantum circuit.
 
-        Args:
-            properties (list): List of gate error properties.
-            transpiled_circ (QuantumCircuit): The transpiled quantum circuit.
+    Args:
+        properties (list): List of gate error properties.
+        transpiled_circ (QuantumCircuit): The transpiled quantum circuit.
 
-        Returns:
-            float: The estimated success rate.
-        """
-    # estimate the success rate according to the error rates of single and
-    # two-qubit gates in transpiled circuits
+    Returns:
+        float: The estimated success rate.
+    """
+    raise NotImplementedError
 
-    gate_errors = gate_error_values(properties)
-    # construct the error dict
-    gate_error_dict = {}
-    for gate_error in gate_errors:
-        if gate_error[0] not in gate_error_dict.keys():
-            gate_error_dict[gate_error[0]] = {tuple(gate_error[1]): gate_error[2]}
-        else:
-            gate_error_dict[gate_error[0]][tuple(gate_error[1])] = gate_error[2]
-
-    success_rate = 1
-    for gate in transpiled_circ.data:
-        gate_success_rate = (
-            1 - gate_error_dict[gate[0].name][tuple(map(lambda x: x.index, gate[1]))]
-        )
-        if gate_success_rate == 0:
-            gate_success_rate = 1e-5
-        success_rate *= gate_success_rate
-
-    return success_rate
 
 def get_provider(backend_name, hub=None):
     """
-        Get the provider object for a specific backend from IBM Quantum.
+    Get the provider object for a specific backend from IBM Quantum.
 
-        Args:
-            backend_name (str): Name of the backend.
-            hub (str): Optional hub name.
+    Args:
+        backend_name (str): Name of the backend.
+        hub (str): Optional hub name.
 
-        Returns:
-            IBMQProvider: The provider object.
-        """
+    Returns:
+        IBMQProvider: The provider object.
+    """
     # mass-inst-tech-1 or MIT-1
     if backend_name in ["ibmq_casablanca", "ibmq_rome", "ibmq_bogota", "ibmq_jakarta"]:
         if hub == "mass" or hub is None:
-            provider = QiskitRuntimeService(channel = "ibm_quantum", instance = "ibm-q-research/mass-inst-tech-1/main")
+            provider = QiskitRuntimeService(
+                channel="ibm_quantum", instance="ibm-q-research/mass-inst-tech-1/main"
+            )
         elif hub == "mit":
-            provider = QiskitRuntimeService(channel = "ibm_quantum", instance = "ibm-q-research/MIT-1/main")
+            provider = QiskitRuntimeService(
+                channel="ibm_quantum", instance="ibm-q-research/MIT-1/main"
+            )
         else:
             raise ValueError(f"not supported backend {backend_name} in hub " f"{hub}")
     elif backend_name in [
@@ -764,38 +752,51 @@ def get_provider(backend_name, hub=None):
         "ibmq_guadalupe",
         "ibmq_montreal",
     ]:
-        provider = QiskitRuntimeService(channel = "ibm_quantum", instance = "ibm-q-ornl/anl/csc428")
+        provider = QiskitRuntimeService(
+            channel="ibm_quantum", instance="ibm-q-ornl/anl/csc428"
+        )
     else:
         if hub == "mass" or hub is None:
             try:
-                provider = QiskitRuntimeService(channel = "ibm_quantum", instance = "ibm-q-research/mass-inst-tech-1/main")
+                provider = QiskitRuntimeService(
+                    channel="ibm_quantum",
+                    instance="ibm-q-research/mass-inst-tech-1/main",
+                )
             except QiskitError:
                 # logger.warning(f"Cannot use MIT backend, roll back to open")
-                logger.warning(f"Use the open backend")
-                provider = QiskitRuntimeService(channel = "ibm_quantum", instance = "ibm-q/open/main")
+                logger.warning("Use the open backend")
+                provider = QiskitRuntimeService(
+                    channel="ibm_quantum", instance="ibm-q/open/main"
+                )
         elif hub == "mit":
-            provider = QiskitRuntimeService(channel = "ibm_quantum", instance = "ibm-q-research/MIT-1/main")
+            provider = QiskitRuntimeService(
+                channel="ibm_quantum", instance="ibm-q-research/MIT-1/main"
+            )
         else:
-            provider = QiskitRuntimeService(channel = "ibm_quantum", instance = "ibm-q/open/main")
+            provider = QiskitRuntimeService(
+                channel="ibm_quantum", instance="ibm-q/open/main"
+            )
 
     return provider
 
 
 def get_provider_hub_group_project(hub="ibm-q", group="open", project="main"):
-    provider = QiskitRuntimeService(channel = "ibm_quantum", instance = f"{hub}/{group}/{project}")
+    provider = QiskitRuntimeService(
+        channel="ibm_quantum", instance=f"{hub}/{group}/{project}"
+    )
     return provider
 
 
 def normalize_statevector(states):
     """
-       Normalize a statevector to ensure the square magnitude of the statevector sums to 1.
+    Normalize a statevector to ensure the square magnitude of the statevector sums to 1.
 
-       Args:
-           states (torch.Tensor): The statevector tensor.
+    Args:
+        states (torch.Tensor): The statevector tensor.
 
-       Returns:
-           torch.Tensor: The normalized statevector tensor.
-       """
+    Returns:
+        torch.Tensor: The normalized statevector tensor.
+    """
     # make sure the square magnitude of statevector sum to 1
     # states = states.contiguous()
     original_shape = states.shape
@@ -826,7 +827,7 @@ def get_circ_stats(circ):
 
     for gate in circ.data:
         op_name = gate[0].name
-        wires = list(map(lambda x: x.index, gate[1]))
+        wires = [circ.find_bit(qb).index for qb in gate.qubits]
         if op_name in n_gates_dict.keys():
             n_gates_dict[op_name] += 1
         else:
@@ -854,7 +855,7 @@ def get_circ_stats(circ):
 
 def partial_trace(
     q_device: QuantumDevice,
-    keep_indices: List[int],
+    keep_indices: list[int],
 ) -> torch.Tensor:
     """Returns a density matrix with only some qubits kept.
     Args:
@@ -957,22 +958,22 @@ def dm_to_mixture_of_state(dm: torch.Tensor, atol=1e-10):
 
 def partial_trace_test():
     """
-        Test function for performing partial trace on a quantum device.
+    Test function for performing partial trace on a quantum device.
 
-        This function demonstrates how to use the `partial_trace` function from `torchquantum.functional`
-        to perform partial trace on a quantum device.
+    This function demonstrates how to use the `partial_trace` function from `torchquantum.functional`
+    to perform partial trace on a quantum device.
 
-        The function applies Hadamard gate on the first qubit and a CNOT gate between the first and second qubits.
-        Then, it performs partial trace on the first qubit and converts the resulting density matrices into
-        mixtures of states.
+    The function applies Hadamard gate on the first qubit and a CNOT gate between the first and second qubits.
+    Then, it performs partial trace on the first qubit and converts the resulting density matrices into
+    mixtures of states.
 
-        Prints the resulting mixture of states.
+    Prints the resulting mixture of states.
 
-        Note: This function assumes that you have already imported the necessary modules and functions.
+    Note: This function assumes that you have already imported the necessary modules and functions.
 
-        Returns:
-            None
-        """
+    Returns:
+        None
+    """
     import torchquantum.functional as tqf
 
     n_wires = 4
@@ -987,7 +988,8 @@ def partial_trace_test():
 
     print(mixture)
 
-def pauli_string_to_matrix(pauli: str, device=torch.device('cpu')) -> torch.Tensor:
+
+def pauli_string_to_matrix(pauli: str, device=torch.device("cpu")) -> torch.Tensor:
     mat_dict = {
         "paulix": torch.tensor([[0, 1], [1, 0]], dtype=C_DTYPE),
         "pauliy": torch.tensor([[0, -1j], [1j, 0]], dtype=C_DTYPE),
@@ -1008,68 +1010,82 @@ def pauli_string_to_matrix(pauli: str, device=torch.device('cpu')) -> torch.Tens
         matrix = torch.kron(matrix, pauli_dict[op].to(device))
     return matrix
 
+
 if __name__ == "__main__":
     build_module_description_test()
     switch_little_big_endian_matrix_test()
     switch_little_big_endian_state_test()
 
 
-def parameter_shift_gradient(model, input_data, expectation_operator, shift_rate=np.pi*0.5, shots=1024):
-    ''' 
-    This function calculates the gradient of a parametrized circuit using the parameter shift rule to be fed into 
-    a classical optimizer, its formula is given by 
-    gradient for the ith parameter =( expectation_value(the_ith_parameter + shift_rate)-expectation_value(the_ith_parameter - shift_rate) ) *0.5 
-    Args: 
+def parameter_shift_gradient(
+    model, input_data, expectation_operator, shift_rate=np.pi * 0.5, shots=1024
+):
+    """
+    This function calculates the gradient of a parametrized circuit using the parameter shift rule to be fed into
+    a classical optimizer, its formula is given by
+    gradient for the ith parameter =( expectation_value(the_ith_parameter + shift_rate)-expectation_value(the_ith_parameter - shift_rate) ) *0.5
+    Args:
         model(tq.QuantumModule): the model that you want to use, which includes the quantum device and the parameters
         input(torch.tensor): the input data that you are using
-        expectation_operator(str): the observable that you want to calculate the expectation value of, usually the Z operator 
+        expectation_operator(str): the observable that you want to calculate the expectation value of, usually the Z operator
         (i.e 'ZZZ' for 3 qubits or 3 wires)
         shift_rate(float , optional): the rate that you would like to shift the parameter with at every iteration, by default pi*0.5
         shots(int , optional): the number of shots to use per parameter ,(for 10 parameters and 1024 shots = 10240 shots in total)
         by default = 1024.
     Returns:
-        torch.tensor : An array of the gradients of all the parameters in the circuit. 
-    '''
+        torch.tensor : An array of the gradients of all the parameters in the circuit.
+    """
     par_num = []
-    for p in model.parameters():#since the model.parameters() Returns an iterator over module parameters,to get the number of parameter i have to iterate over all of them
+    for (
+        p
+    ) in (
+        model.parameters()
+    ):  # since the model.parameters() Returns an iterator over module parameters,to get the number of parameter i have to iterate over all of them
         par_num.append(p)
     gradient_of_par = torch.zeros(len(par_num))
-                                        
-    def clone_model(model_to_clone):#i have to note:this clone_model function was made with GPT 
+
+    def clone_model(
+        model_to_clone,
+    ):  # i have to note:this clone_model function was made with GPT
         cloned_model = type(model_to_clone)()  # Create a new instance of the same class
-        cloned_model.load_state_dict(model_to_clone.state_dict())  # Copy the state dictionary
+        cloned_model.load_state_dict(
+            model_to_clone.state_dict()
+        )  # Copy the state dictionary
         return cloned_model
 
     # Clone the models
-    model_plus_shift  = clone_model(model)
+    model_plus_shift = clone_model(model)
     model_minus_shift = clone_model(model)
-    state_dict_plus_shift  = model_plus_shift.state_dict()
+    state_dict_plus_shift = model_plus_shift.state_dict()
     state_dict_minus_shift = model_minus_shift.state_dict()
     #####################
 
     for idx, key in enumerate(state_dict_plus_shift):
-        if idx < 2:  # Skip the first two keys because they are not paramters
+        if idx < 2:  # Skip the first two keys because they are not parameters
             continue
-        state_dict_plus_shift[key]  +=  shift_rate
-        state_dict_minus_shift[key] -=  shift_rate
-        
-        model_plus_shift.load_state_dict(state_dict_plus_shift  )
+        state_dict_plus_shift[key] += shift_rate
+        state_dict_minus_shift[key] -= shift_rate
+
+        model_plus_shift.load_state_dict(state_dict_plus_shift)
         model_minus_shift.load_state_dict(state_dict_minus_shift)
-        
+
         model_plus_shift.forward(input_data)
         model_minus_shift.forward(input_data)
-        
-        state_dict_plus_shift  = model_plus_shift.state_dict()
+
+        state_dict_plus_shift = model_plus_shift.state_dict()
         state_dict_minus_shift = model_minus_shift.state_dict()
-                
-        
-        
-        expectation_plus_shift = tq.expval_joint_sampling(model_plus_shift.q_device, observable=expectation_operator, n_shots=shots)
-        expectation_minus_shift = tq.expval_joint_sampling(model_minus_shift.q_device, observable=expectation_operator, n_shots=shots)
 
+        expectation_plus_shift = tq.expval_joint_sampling(
+            model_plus_shift.q_device, observable=expectation_operator, n_shots=shots
+        )
+        expectation_minus_shift = tq.expval_joint_sampling(
+            model_minus_shift.q_device, observable=expectation_operator, n_shots=shots
+        )
 
-        state_dict_plus_shift[key]  -=  shift_rate
-        state_dict_minus_shift[key] +=  shift_rate
-        
-        gradient_of_par[idx-2] = (expectation_plus_shift - expectation_minus_shift) * 0.5
+        state_dict_plus_shift[key] -= shift_rate
+        state_dict_minus_shift[key] += shift_rate
+
+        gradient_of_par[idx - 2] = (
+            expectation_plus_shift - expectation_minus_shift
+        ) * 0.5
     return gradient_of_par

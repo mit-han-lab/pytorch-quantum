@@ -1,10 +1,6 @@
-import torch
-import torchquantum as tq
-from qiskit import pulse, QuantumCircuit
-from qiskit.pulse import library
-from qiskit.test.mock import FakeQuito, FakeArmonk, FakeBogota
-from qiskit.compiler import assemble, schedule
-from .qiskit_macros import IBMQ_PNAMES
+from qiskit import pulse
+
+from .qiskit.qiskit_macros import IBMQ_PNAMES
 
 
 def circ2pulse(circuits, name):
@@ -24,7 +20,7 @@ def circ2pulse(circuits, name):
         >>> qc.cx(0, 1)
         >>> circ2pulse(qc, 'ibmq_oslo')
     """
-    
+
     if name in IBMQ_PNAMES:
         backend = name()
         with pulse.build(backend) as pulse_tq:

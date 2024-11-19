@@ -22,16 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+from typing import Iterable
+
+import numpy as np
 import torch
 import torch.nn as nn
+from torchpack.utils.logging import logger
+
 import torchquantum as tq
 import torchquantum.functional as tqf
-import numpy as np
-
-
-from typing import Iterable
 from torchquantum.plugin.qiskit import QISKIT_INCOMPATIBLE_FUNC_NAMES
-from torchpack.utils.logging import logger
 
 __all__ = [
     "QuantumModuleFromOps",
@@ -61,6 +61,6 @@ class QuantumModuleFromOps(tq.QuantumModule):
             None
 
         """
-        self.q_device = q_device
+        q_device.reset_states(1)
         for op in self.ops:
-            op(q_device)
+            op(q_device, wires=op.wires)

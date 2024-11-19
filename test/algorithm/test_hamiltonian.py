@@ -132,8 +132,13 @@ def test_hamiltonian():
             ]
         ),
     )
+    import os
 
-    hamil = Hamiltonian.from_file("test/algorithm/h2.txt")
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, '..', 'algorithm', 'h2.txt')
+    hamil = Hamiltonian.from_file(file_path)
+
+    #hamil = Hamiltonian.from_file("./h2.txt")
 
     assert np.allclose(
         hamil.matrix.cpu().detach().numpy(),

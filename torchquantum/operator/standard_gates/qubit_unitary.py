@@ -1,11 +1,12 @@
-from ..op_types import *
 from abc import ABCMeta
-from torchquantum.macro import C_DTYPE
-import torchquantum as tq
-import torch
-from torchquantum.functional import mat_dict
-import torchquantum.functional as tqf
+
 import numpy as np
+import torch
+
+import torchquantum.functional as tqf
+from torchquantum.macro import C_DTYPE
+
+from ..op_types import *
 
 
 class QubitUnitary(Operation, metaclass=ABCMeta):
@@ -118,7 +119,7 @@ class QubitUnitaryFast(Operation, metaclass=ABCMeta):
         n_wires = n_c_wires + n_t_wires
 
         # compute the new unitary, then permute
-        unitary = torch.tensor(torch.zeros(2**n_wires, 2**n_wires, dtype=C_DTYPE))
+        unitary = torch.zeros(2**n_wires, 2**n_wires, dtype=C_DTYPE)
         for k in range(2**n_wires - 2**n_t_wires):
             unitary[k, k] = 1.0 + 0.0j
 

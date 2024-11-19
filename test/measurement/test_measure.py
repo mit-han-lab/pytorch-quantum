@@ -22,11 +22,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import torchquantum as tq
-
-from torchquantum.plugin import op_history2qiskit
-from qiskit import Aer, transpile
 import numpy as np
+from qiskit import transpile
+from qiskit_aer import AerSimulator
+
+import torchquantum as tq
+from torchquantum.plugin import op_history2qiskit
 
 
 def test_measure():
@@ -42,7 +43,7 @@ def test_measure():
 
     circ = op_history2qiskit(qdev.n_wires, qdev.op_history)
     circ.measure_all()
-    simulator = Aer.get_backend("aer_simulator")
+    simulator = AerSimulator()
     circ = transpile(circ, simulator)
     qiskit_res = simulator.run(circ, shots=n_shots).result()
     qiskit_counts = qiskit_res.get_counts()

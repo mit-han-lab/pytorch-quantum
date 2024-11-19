@@ -60,6 +60,7 @@ class QFCModel(tq.QuantumModule):
                 self.q_device, self.encoder, self.q_layer, self.measure, x
             )
         else:
+            self.q_device = tq.QuantumDevice(n_wires=self.n_wires, bsz=bsz)
             self.encoder(self.q_device, x)
             self.q_layer(self.q_device)
             x = self.measure(self.q_device)

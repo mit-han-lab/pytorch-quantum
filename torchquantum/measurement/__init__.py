@@ -23,3 +23,4 @@ SOFTWARE.
 """
 
 from .measurements import *
+from .density_measurements import *

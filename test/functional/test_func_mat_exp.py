@@ -22,9 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import torch
-import torchquantum as tq
 import numpy as np
+import torch
+
+import torchquantum as tq
 
 
 def test_func_mat_exp():

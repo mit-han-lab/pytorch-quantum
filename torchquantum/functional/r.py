@@ -97,6 +97,7 @@ def r(
         method=comp_method,
         q_device=q_device,
         wires=wires,
+        paramnum=2,
         params=params,
         n_wires=n_wires,
         static=static,

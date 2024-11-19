@@ -25,14 +25,13 @@ SOFTWARE.
 # test the controlled unitary function
 
 
-import torchquantum as tq
-import torchquantum.functional as tqf
 from test.utils import check_all_close
 
 # import pdb
 # pdb.set_trace()
 import numpy as np
 
+import torchquantum as tq
 
 flag = 4
 

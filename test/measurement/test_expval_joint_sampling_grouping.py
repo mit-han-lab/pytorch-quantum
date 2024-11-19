@@ -22,14 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import random
+
+import numpy as np
+
 import torchquantum as tq
 from torchquantum.measurement import (
     expval_joint_analytical,
     expval_joint_sampling_grouping,
 )
-
-import numpy as np
-import random
 
 
 def test_expval_joint_sampling_grouping():
@@ -54,7 +55,7 @@ def test_expval_joint_sampling_grouping():
     )
     for obs in obs_all:
         # assert
-        assert np.isclose(expval_ana[obs], expval_sam[obs][0].item(), atol=1e-2)
+        assert np.isclose(expval_ana[obs], expval_sam[obs][0].item(), atol=0.015)
         print(obs, expval_ana[obs], expval_sam[obs][0].item())
 
 

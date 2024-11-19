@@ -88,6 +88,7 @@ def phaseshift(
         method=comp_method,
         q_device=q_device,
         wires=wires,
+        paramnum=1,
         params=params,
         n_wires=n_wires,
         static=static,

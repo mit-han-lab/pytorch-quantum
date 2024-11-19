@@ -22,12 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-import torch
-import torchquantum as tq
-from qiskit import pulse, QuantumCircuit
-from qiskit.pulse import library
-from qiskit.test.mock import FakeQuito, FakeArmonk, FakeBogota
-from qiskit.compiler import assemble, schedule
+from qiskit import pulse
+
 from .qiskit_macros import IBMQ_PNAMES
 
 
