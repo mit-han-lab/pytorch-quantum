@@ -42,8 +42,22 @@ def measure(qdev, n_shots=1024, draw_id=None):
     Returns:
         distribution of bitstrings
     """
-    bitstring_candidates = gen_bitstrings(qdev.n_wires)
+
+    """
+    In measure function, the statevector is copied to the CPU and 
+    a list of all possible 2^n bitstrings is constructed to do the sampling. 
+    This is again a huge CPU memory and runtime overhead since sampling can done on the GPU directly and efficiently. 
+    Here is a sketch of how that might look like in PyTorch using Inverse transform sampling method: 
+    Calculate squared amplitudes on GPU using troch.abs and troch.square. 
+    Calculate the cumulative distribution function using troch.cumsum. 
+    Generate random numbers (as many as the required number of samples) between 0 and 1 using torch.rand. 
+    Find the index of each random number inside the cumulative distribution using troch.searchsorted. 
+    Copy the indices to the CPU and convert each number to its bitstring binary representation.
+    """
+
+    bitstring_candidates = gen_bitstrings(qdev.n_wires)  # length is 2 to the power of n_wires
     if isinstance(qdev, tq.QuantumDevice):
+        # length is 2 to the power of n_wires
         state_mag = qdev.get_states_1d().abs().detach().cpu().numpy()
     elif isinstance(qdev, tq.NoiseDevice):
         '''

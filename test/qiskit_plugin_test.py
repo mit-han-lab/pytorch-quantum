@@ -36,7 +36,7 @@ from torchquantum.util import (
     get_expectations_from_counts,
     find_global_phase,
 )
-from test.static_mode_test import QLayer as AllRandomLayer
+from static_mode_test import QLayer as AllRandomLayer
 from torchquantum.plugin import tq2qiskit
 from torchquantum.macro import F_DTYPE
 
@@ -54,11 +54,12 @@ def unitary_tq_vs_qiskit_test():
             qiskit_compatible=True,
         )
 
-        unitary_tq = q_layer.get_unitary(q_dev, x)
+        # unitary_tq = q_layer.get_unitary(q_dev, x)
+        unitary_tq = q_layer.get_unitary(x)
         unitary_tq = switch_little_big_endian_matrix(unitary_tq.data.numpy())
 
         # qiskit
-        circ = tq2qiskit(q_layer, x)
+        circ = tq2qiskit(q_dev, q_layer, x)
         simulator = Aer.get_backend("unitary_simulator")
         result = execute(circ, simulator).result()
         unitary_qiskit = result.get_unitary(circ)

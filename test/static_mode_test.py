@@ -155,7 +155,20 @@ class QLayer(tq.QuantumModule):
         cnt = 0
         while cnt < self.n_funcs:
             func = np.random.choice(self.funcs)
-            n_func_wires = op_name_dict[func]().num_wires
+            # print(f"Selected function: {func}")
+
+            """
+            ORIGINAL: n_func_wires = op_name_dict[func]().num_wires
+            Changed to avoid initialization error with QubitUnitaryFast which requires 
+            parameters during instantiation. Instead, we access num_wires directly 
+            from the class since it's a class attribute.
+            """
+
+            op_class = op_name_dict[func]
+            # print(f"Operator class: {op_class}")
+            # print(f"Number of wires: {op_class.num_wires}")
+            n_func_wires = op_class.num_wires
+            
             if n_func_wires > self.n_wires:
                 continue
             cnt += 1
@@ -191,8 +204,9 @@ class QLayer(tq.QuantumModule):
             self.func_list, self.func_wires_list, self.func_inverse
         ):
             n_func_wires = len(func_wires)
-            n_func_params = op_name_dict[func]().num_params
-
+            op_class = op_name_dict[func]
+            # n_func_params = op_name_dict[func]().num_params
+            n_func_params = op_class.num_params
             if n_func_params == 0:
                 if func in ["multicnot", "multixcnot"]:
                     func_name_dict[func](

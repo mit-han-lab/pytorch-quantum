@@ -110,7 +110,7 @@ def u1(
 
     """
     name = "u1"
-    mat = mat_dict[name]
+    mat = _u1_mat_dict[name]
     gate_wrapper(
         name=name,
         mat=mat,
@@ -157,7 +157,7 @@ def cu1(
 
     """
     name = "cu1"
-    mat = mat_dict[name]
+    mat = _u1_mat_dict[name]
     gate_wrapper(
         name=name,
         mat=mat,

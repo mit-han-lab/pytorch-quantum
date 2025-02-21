@@ -156,10 +156,17 @@ class QuantumGraph(object):
         if not self.is_list_finish:
             # graph construction is not finished, build a new operation and
             # add the operation to the graph
-            op = tq.op_name_dict[name]()
-            op.params = params
-            op.n_wires = n_wires
-            op.wires = wires
+            print(tq.op_name_dict[name])
+            # op = tq.op_name_dict[name]()
+            op_class = tq.op_name_dict[name]
+            op = op_class(has_params=True if params is not None else False,
+              trainable=False,
+              init_params=params,
+              n_wires=n_wires,
+              wires=wires)
+            # op.params = params
+            # op.n_wires = n_wires
+            # op.wires = wires
             op.graph = tq.QuantumGraph()
             op.parent_graph = parent_graph
             op.static_mode = True

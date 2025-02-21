@@ -3,10 +3,15 @@ import torch.nn as nn
 import torchquantum as tq
 import torchquantum.functional.functionals as tqf
 import numpy as np
+import logging
 from abc import ABCMeta
 from ..macro import C_DTYPE, F_DTYPE
 from typing import Iterable, Union, List
 from enum import IntEnum
+
+
+# Add logging init
+logger = logging.getLogger(__name__)
 
 __all__ = [
     "Operator",
